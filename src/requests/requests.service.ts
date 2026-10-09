@@ -12,6 +12,7 @@ import { CreateRequestDto } from './dto/create-request.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { CommercialRequest } from './entities/commercial-request.entity.js';
 import { Status } from './entities/status.entity.js';
+import type { AuthUser } from '../common/users.js';
 
 @Injectable()
 export class RequestsService implements OnApplicationBootstrap {
@@ -31,25 +32,25 @@ export class RequestsService implements OnApplicationBootstrap {
     await this.statuses.save(names.map((nombre, i) => ({ nombre, orden: i + 1 })));
   }
 
-  async create(createRequestDto: CreateRequestDto) {
+  async create(createRequestDto: CreateRequestDto, user: AuthUser) {
     const [initial] = await this.statuses.find({ order: { orden: 'ASC' }, take: 1 });
     return this.requests.save(
       this.requests.create({ ...createRequestDto, estado: initial }),
     );
   }
 
-  findAll() {
+  findAll(user: AuthUser) {
     return this.requests.find({ order: { id: 'ASC' } });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, user: AuthUser) {
     const request = await this.requests.findOneBy({ id });
     if (!request) throw new NotFoundException(`La solicitud ${id} no existe`);
     return request;
   }
 
-  async updateStatus(id: number, updateStatusDto: UpdateStatusDto) {
-    const request = await this.findOne(id);
+  async updateStatus(id: number, updateStatusDto: UpdateStatusDto, user: AuthUser) {
+    const request = await this.findOne(id, user);
     const target = await this.statuses.findOneBy({ nombre: updateStatusDto.estado });
     if (!target) {
       throw new BadRequestException(`El estado ${updateStatusDto.estado} no es válido`);
