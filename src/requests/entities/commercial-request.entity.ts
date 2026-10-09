@@ -22,6 +22,7 @@ export class CommercialRequest {
   @CreateDateColumn({ type: 'timestamptz' })
   creadaEn: Date;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   actualizadaEn: Date;
+
 }
