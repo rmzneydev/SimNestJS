@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { SolicitudModule } from './solicitud/solicitud.module.js';
+import { RequestsModule } from './requests/requests.module.js';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { SolicitudModule } from './solicitud/solicitud.module.js';
       synchronize: true,
     }),
   }),
-  SolicitudModule,
+  RequestsModule,
 ],
 
   controllers: [AppController],

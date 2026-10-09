@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { Estado } from './estado.entity.js';
+import { Status } from './status.entity.js';
 
 @Entity('solicitudes')
-export class Solicitud {
+export class CommercialRequest {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -15,9 +15,9 @@ export class Solicitud {
   @Column()
   asesor: string;
 
-  @ManyToOne(() => Estado, { eager: true, nullable: false })
+  @ManyToOne(() => Status, { eager: true, nullable: false })
   @JoinColumn({ name: 'estado_id' })
-  estado: Estado;
+  estado: Status;
 
   @CreateDateColumn()
   creadaEn: Date;
