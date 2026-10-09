@@ -1,124 +1,251 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# API de solicitudes comerciales
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST construida con NestJS para registrar y consultar solicitudes de seguimiento comercial. Controla las acciones según el rol del usuario y protege todos los endpoints con una API Key.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tecnologías
 
-## Description
+- Node.js 24, NestJS 12 y TypeScript
+- TypeORM con PostgreSQL 17
+- Docker y Docker Compose (servicios `api` y `db`)
+- class-validator y class-transformer para los DTO
+- Swagger / OpenAPI
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Requisitos
 
-## Project setup
+- Docker y Docker Compose
+
+## Instalación y ejecución
 
 ```bash
-$ npm install
+cp .env.example .env
+docker compose up --build
 ```
 
-## Compile and run the project
+La API queda disponible en `http://localhost:3000` y la documentación Swagger en `http://localhost:3000/docs`.
+
+Para detenerla:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose down        # conserva los datos
+docker compose down -v     # borra también la base de datos
 ```
 
-## Run tests
+### Ejecución sin Docker para la API (opcional)
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
+docker compose up -d db
+npm run start:dev
 ```
 
-## Deployment
+## Variables de entorno
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Variable | Descripción | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto de la API | `3000` |
+| `API_KEYS` | API Keys válidas, separadas por comas | `key-demo-1,key-demo-2` |
+| `DB_HOST` | Host de PostgreSQL. Con Docker Compose se sobrescribe a `db` | `localhost` |
+| `DB_PORT` | Puerto de PostgreSQL publicado en la máquina | `5432` |
+| `DB_USER` | Usuario de la base de datos | `postgres` |
+| `DB_PASSWORD` | Contraseña de la base de datos | `postgres` |
+| `DB_NAME` | Nombre de la base de datos | `request_db` |
+| `STATUSES` | Estados de una solicitud, en el orden del flujo | `PENDIENTE,EN_GESTION,RESUELTA` |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Las claves del archivo `.env.example` son ficticias. Ninguna API Key está escrita en el código fuente.
+
+## Encabezados requeridos
+
+Todos los endpoints exigen estos dos encabezados:
+
+| Encabezado | Descripción |
+| --- | --- |
+| `x-api-key` | Una de las claves configuradas en `API_KEYS` |
+| `x-user` | Nombre de un usuario de prueba |
+
+### Usuarios de prueba
+
+Los usuarios están definidos en memoria, en `src/common/users.ts`. El rol lo asigna el servidor a partir del usuario; nunca se toma de la petición.
+
+| `x-user` | Rol |
+| --- | --- |
+| `admin1` | admin |
+| `super1` | supervisor |
+| `ana` | asesor |
+| `luis` | asesor |
+
+## Endpoints
+
+| Método | Endpoint | Función |
+| --- | --- | --- |
+| POST | `/solicitudes` | Registrar una solicitud |
+| GET | `/solicitudes` | Consultar las solicitudes permitidas para el usuario |
+| GET | `/solicitudes/:id` | Consultar una solicitud individual |
+| PATCH | `/solicitudes/:id/estado` | Cambiar el estado de una solicitud |
+
+Cuerpo para registrar:
+
+```json
+{
+  "cliente": "Comercial Andina S.A.S.",
+  "descripcion": "Solicita cotización de renovación",
+  "asesor": "ana"
+}
+```
+
+Cuerpo para cambiar el estado:
+
+```json
+{
+  "estado": "EN_GESTION"
+}
+```
+
+## Reglas de negocio
+
+- **Registro**: el estado inicial siempre es `PENDIENTE`. Si registra un asesor, queda como responsable él mismo aunque envíe otro valor. Si registra un admin o supervisor, el campo `asesor` es obligatorio y debe ser un usuario con rol asesor.
+- **Consulta**: admin y supervisor ven todas las solicitudes. Un asesor solo ve las suyas; el filtro se aplica en la consulta a la base de datos.
+- **Consulta individual y cambio de estado**: un asesor no puede acceder a una solicitud de otro asesor ni modificarla.
+- **Estados**: solo se permite avanzar un paso, `PENDIENTE` → `EN_GESTION` → `RESUELTA`. No se puede saltar un paso, repetir el estado actual ni reabrir una solicitud resuelta.
+
+## Formato de las respuestas
+
+Respuesta exitosa, generada por un interceptor:
+
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+
+Respuesta de error, generada por un Exception Filter:
+
+```json
+{
+  "success": false,
+  "statusCode": 409,
+  "message": "No se puede pasar de PENDIENTE a RESUELTA",
+  "path": "/solicitudes/1/estado",
+  "timestamp": "2026-10-09T15:41:45.812Z"
+}
+```
+
+| Código | Causa |
+| --- | --- |
+| 400 | Datos inválidos, campo no permitido, estado inexistente o asesor no válido |
+| 401 | `x-api-key` o `x-user` ausente o inválido |
+| 403 | El asesor intenta acceder a una solicitud ajena, o el rol no tiene permiso |
+| 404 | La solicitud o la ruta no existe |
+| 409 | Transición de estado no permitida |
+| 500 | Error inesperado; el detalle queda solo en el log del servidor |
+
+## Estructura del proyecto
+
+```
+src/
+├── main.ts                      ValidationPipe, interceptor, filtro y Swagger
+├── app.module.ts                Configuración y conexión a la base de datos
+├── common/
+│   ├── users.ts                 Usuarios de prueba y roles
+│   ├── decorators/              @Roles() y @CurrentUser()
+│   ├── guards/                  ApiKeyGuard, UserGuard y RolesGuard
+│   ├── interceptors/            ResponseInterceptor
+│   └── filters/                 HttpExceptionFilter
+└── requests/
+    ├── requests.controller.ts
+    ├── requests.service.ts      Reglas de negocio
+    ├── dto/                     CreateRequestDto y UpdateStatusDto
+    └── entities/                CommercialRequest y Status
+```
+
+Los guards se ejecutan en este orden: `ApiKeyGuard` valida la clave, `UserGuard` valida el usuario y le asigna su rol, y `RolesGuard` compara ese rol con los declarados en `@Roles()`.
+
+## Decisiones técnicas
+
+- **PostgreSQL con Docker en lugar de SQLite**: la base de datos corre como servicio `db` de Docker Compose, de modo que la instalación sigue siendo un solo comando.
+- **Estados en una tabla**: los estados viven en la tabla `estados`, con una columna `orden` que define el flujo. El estado inicial es el de menor orden y una transición es válida solo si avanza exactamente un paso, así que el código no contiene ningún nombre de estado. La tabla se carga desde `STATUSES` únicamente cuando está vacía; cambiar esa variable después no modifica una base ya creada.
+- **Límite de ese diseño**: la columna `orden` modela un flujo lineal. Si el negocio necesitara ramificaciones o retrocesos, habría que reemplazarla por una tabla de transiciones permitidas.
+- **`synchronize: true`** en TypeORM: crea las tablas al arrancar.
+- **Identificación por `x-user`**: es un mecanismo académico y no reemplaza un sistema de autenticación real.
+
+## Pruebas con curl
+
+Con la API en ejecución y las claves del `.env.example`:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Sin API Key: 401
+curl -i http://localhost:3000/solicitudes
+
+# API Key inválida: 401
+curl -i http://localhost:3000/solicitudes -H 'x-api-key: incorrecta' -H 'x-user: ana'
+
+# Usuario desconocido: 401
+curl -i http://localhost:3000/solicitudes -H 'x-api-key: key-demo-1' -H 'x-user: pepito'
+
+# Registrar como asesor: 201, el asesor queda "ana" y el estado PENDIENTE
+curl -i -X POST http://localhost:3000/solicitudes \
+  -H 'x-api-key: key-demo-1' -H 'x-user: ana' -H 'Content-Type: application/json' \
+  -d '{"cliente":"Acme","descripcion":"Solicita cotización","asesor":"luis"}'
+
+# Registrar como admin para otro asesor: 201
+curl -i -X POST http://localhost:3000/solicitudes \
+  -H 'x-api-key: key-demo-2' -H 'x-user: admin1' -H 'Content-Type: application/json' \
+  -d '{"cliente":"Beta","descripcion":"Agendar visita","asesor":"luis"}'
+
+# Datos inválidos: 400
+curl -i -X POST http://localhost:3000/solicitudes \
+  -H 'x-api-key: key-demo-1' -H 'x-user: ana' -H 'Content-Type: application/json' \
+  -d '{"cliente":"","estado":"RESUELTA"}'
+
+# Un asesor solo ve sus solicitudes; un supervisor las ve todas
+curl -i http://localhost:3000/solicitudes -H 'x-api-key: key-demo-1' -H 'x-user: ana'
+curl -i http://localhost:3000/solicitudes -H 'x-api-key: key-demo-1' -H 'x-user: super1'
+
+# Asesor consulta o modifica una solicitud ajena (la 2 es de luis): 403
+curl -i http://localhost:3000/solicitudes/2 -H 'x-api-key: key-demo-1' -H 'x-user: ana'
+curl -i -X PATCH http://localhost:3000/solicitudes/2/estado \
+  -H 'x-api-key: key-demo-1' -H 'x-user: ana' -H 'Content-Type: application/json' \
+  -d '{"estado":"EN_GESTION"}'
+
+# Saltar de PENDIENTE a RESUELTA: 409
+curl -i -X PATCH http://localhost:3000/solicitudes/1/estado \
+  -H 'x-api-key: key-demo-1' -H 'x-user: ana' -H 'Content-Type: application/json' \
+  -d '{"estado":"RESUELTA"}'
+
+# Transición válida: 200
+curl -i -X PATCH http://localhost:3000/solicitudes/1/estado \
+  -H 'x-api-key: key-demo-1' -H 'x-user: ana' -H 'Content-Type: application/json' \
+  -d '{"estado":"EN_GESTION"}'
+
+# Solicitud inexistente: 404
+curl -i http://localhost:3000/solicitudes/9999 -H 'x-api-key: key-demo-1' -H 'x-user: admin1'
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Los identificadores `1` y `2` corresponden a una base recién creada, donde la primera solicitud es de `ana` y la segunda de `luis`.
 
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project:
+Para comprobar que los registros se guardan en PostgreSQL:
 
 ```bash
-$ npm install @nestjs/observe
+docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select s.id, s.cliente, s.asesor, e.nombre as estado from solicitudes s join estados e on e.id = s.estado_id order by s.id;"'
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+## Evidencias
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+Capturas de los escenarios principales, tomadas desde Swagger con la base de datos recién creada. Están en [docs/evidencias/](docs/evidencias/).
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| # | Escenario | Resultado | Captura |
+| --- | --- | --- | --- |
+| 1 | Petición sin `x-api-key` | 401 | [01](docs/evidencias/01-sin-api-key-401.png) |
+| 2 | `x-api-key` inválida | 401 | [02](docs/evidencias/02-api-key-invalida-401.png) |
+| 3 | Segunda API Key configurada | 200 | [03](docs/evidencias/03-segunda-api-key-valida-200.png) |
+| 4 | `x-user` desconocido | 401 | [04](docs/evidencias/04-usuario-desconocido-401.png) |
+| 5 | DTO con `cliente` vacío y campo no permitido | 400 | [petición](docs/evidencias/05-validacion-dto-400.s1.png), [respuesta](docs/evidencias/05-validacion-dto-400.s2.png) |
+| 6 | Asesor registra: queda como responsable y en `PENDIENTE` | 201 | [06](docs/evidencias/06-asesor-registra-solicitud-201.png) |
+| 7 | Admin registra para un asesor | 201 | [07](docs/evidencias/07-admin-registra-para-asesor-201.png) |
+| 8 | Asesor lista solo sus solicitudes | 200 | [08](docs/evidencias/08-asesor-lista-solo-las-suyas-200.png) |
+| 9 | Supervisor lista todas | 200 | [09](docs/evidencias/09-supervisor-lista-todas-200.png) |
+| 10 | Asesor consulta una solicitud ajena | 403 | [10](docs/evidencias/10-asesor-consulta-ajena-403.png) |
+| 11 | Asesor cambia el estado de una solicitud ajena | 403 | [11](docs/evidencias/11-asesor-modifica-ajena-403.png) |
+| 12 | Salto de `PENDIENTE` a `RESUELTA` | 409 | [12](docs/evidencias/12-salto-de-estado-409.png) |
+| 13 | Transición válida a `EN_GESTION` | 200 | [13](docs/evidencias/13-transicion-valida-200.png) |
+| 14 | Solicitud inexistente | 404 | [14](docs/evidencias/14-solicitud-inexistente-404.png) |
