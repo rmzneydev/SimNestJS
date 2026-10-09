@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { SolicitudService } from './solicitud.service.js';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto.js';
-import { UpdateSolicitudDto } from './dto/update-solicitud.dto.js';
+import { UpdateEstadoDto } from './dto/update-estado.dto.js';
 
 @Controller('solicitud')
 export class SolicitudController {
@@ -23,8 +23,8 @@ export class SolicitudController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSolicitudDto: UpdateSolicitudDto) {
-    return this.solicitudService.update(+id, updateSolicitudDto);
+  update(@Param('id') id: string, @Body() updateEstadoDto: UpdateEstadoDto) {
+    return this.solicitudService.update(+id, updateEstadoDto);
   }
 
   @Delete(':id')

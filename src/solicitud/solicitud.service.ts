@@ -1,6 +1,6 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto.js';
-import { UpdateSolicitudDto } from './dto/update-solicitud.dto.js';
+import { UpdateEstadoDto } from './dto/update-estado.dto.js';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -34,7 +34,7 @@ export class SolicitudService implements OnApplicationBootstrap {
     return `This action returns a #${id} solicitud`;
   }
 
-  update(id: number, updateSolicitudDto: UpdateSolicitudDto) {
+  update(id: number, updateEstadoDto: UpdateEstadoDto) {
     return `This action updates a #${id} solicitud`;
   }
 
