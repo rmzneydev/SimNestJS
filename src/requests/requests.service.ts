@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   OnApplicationBootstrap,
@@ -12,6 +13,7 @@ import { CreateRequestDto } from './dto/create-request.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { CommercialRequest } from './entities/commercial-request.entity.js';
 import { Status } from './entities/status.entity.js';
+import { USERS } from '../common/users.js';
 import type { AuthUser } from '../common/users.js';
 
 @Injectable()
@@ -33,19 +35,34 @@ export class RequestsService implements OnApplicationBootstrap {
   }
 
   async create(createRequestDto: CreateRequestDto, user: AuthUser) {
+    const asesor = this.resolveAdvisor(createRequestDto.asesor, user);
     const [initial] = await this.statuses.find({ order: { orden: 'ASC' }, take: 1 });
     return this.requests.save(
-      this.requests.create({ ...createRequestDto, estado: initial }),
+      this.requests.create({ ...createRequestDto, asesor, estado: initial }),
     );
   }
 
+  private resolveAdvisor(asesor: string | undefined, user: AuthUser): string {
+    if (user.role === 'asesor') return user.username;
+    if (!asesor || !Object.hasOwn(USERS, asesor) || USERS[asesor] !== 'asesor') {
+      throw new BadRequestException('Debes indicar un asesor válido para la solicitud');
+    }
+    return asesor;
+  }
+
   findAll(user: AuthUser) {
-    return this.requests.find({ order: { id: 'ASC' } });
+    return this.requests.find({
+      where: user.role === 'asesor' ? { asesor: user.username } : {},
+      order: { id: 'ASC' },
+    });
   }
 
   async findOne(id: number, user: AuthUser) {
     const request = await this.requests.findOneBy({ id });
     if (!request) throw new NotFoundException(`La solicitud ${id} no existe`);
+    if (user.role === 'asesor' && request.asesor !== user.username) {
+      throw new ForbiddenException('No puedes acceder a una solicitud de otro asesor');
+    }
     return request;
   }
 

@@ -19,9 +19,9 @@ export class CommercialRequest {
   @JoinColumn({ name: 'estado_id' })
   estado: Status;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   creadaEn: Date;
 
-  @UpdateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   actualizadaEn: Date;
 }
