@@ -15,5 +15,17 @@ services:
       timeout: 3s
       retries: 10
 
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      - '${PORT}:${PORT}'
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   db_data:
