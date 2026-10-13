@@ -13,7 +13,6 @@ import { CreateRequestDto } from './dto/create-request.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { CommercialRequest } from './entities/commercial-request.entity.js';
 import { Status } from './entities/status.entity.js';
-import { USERS } from '../common/users.js';
 import type { AuthUser } from '../common/users.js';
 
 @Injectable()
@@ -35,19 +34,12 @@ export class RequestsService implements OnApplicationBootstrap {
   }
 
   async create(createRequestDto: CreateRequestDto, user: AuthUser) {
-    const asesor = this.resolveAdvisor(createRequestDto.asesor, user);
+    // RN-07: un asesor se autoasigna; supervisor o admin crean sin asignación
+    const asesor = user.role === 'asesor' ? user.username : null;
     const [initial] = await this.statuses.find({ order: { orden: 'ASC' }, take: 1 });
     return this.requests.save(
       this.requests.create({ ...createRequestDto, asesor, estado: initial }),
     );
-  }
-
-  private resolveAdvisor(asesor: string | undefined, user: AuthUser): string {
-    if (user.role === 'asesor') return user.username;
-    if (!asesor || !Object.hasOwn(USERS, asesor) || USERS[asesor] !== 'asesor') {
-      throw new BadRequestException('Debes indicar un asesor válido para la solicitud');
-    }
-    return asesor;
   }
 
   findAll(user: AuthUser) {
