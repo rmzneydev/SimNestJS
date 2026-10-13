@@ -1,7 +1,10 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Status } from './status.entity.js';
 
 @Entity('solicitudes')
+@Index(['estado'])
+@Index(['asesor'])
+@Index(['creadaEn'])
 export class CommercialRequest {
   @PrimaryGeneratedColumn()
   id: number;
@@ -12,8 +15,11 @@ export class CommercialRequest {
   @Column('text')
   descripcion: string;
 
-  @Column()
-  asesor: string;
+  @Column({ nullable: true })
+  asesor: string | null;
+
+  @Column({ type: 'int', default: 1 })
+  version: number;
 
   @ManyToOne(() => Status, { eager: true, nullable: false })
   @JoinColumn({ name: 'estado_id' })
