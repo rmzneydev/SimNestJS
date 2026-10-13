@@ -15,7 +15,7 @@ export class CommercialRequest {
   @Column('text')
   descripcion: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   asesor: string | null;
 
   @Column({ type: 'int', default: 1 })

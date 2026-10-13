@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, RelationId } from 'typeorm';
 import { CommercialRequest } from './commercial-request.entity.js';
 
 export type HistoryEventType = 'CREACION' | 'ESTADO' | 'ASIGNACION';
@@ -14,13 +14,13 @@ export class RequestHistory {
   @JoinColumn({ name: 'solicitud_id' })
   solicitud: CommercialRequest;
 
-  @Column()
+  @RelationId((evento: RequestHistory) => evento.solicitud)
   solicitudId: number;
 
   @Column()
   tipoEvento: HistoryEventType;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   valorAnterior: string | null;
 
   @Column()

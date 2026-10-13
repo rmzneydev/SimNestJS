@@ -37,8 +37,8 @@ function IsDateRangeValid(validationOptions?: ValidationOptions) {
 
 export class QueryRequestsDto {
   @ApiPropertyOptional({
-    enum: ['PENDIENTE', 'EN_GESTION', 'RESUELTA'],
-    description: 'Filtra por estado de la solicitud',
+    type: String,
+    description: 'Filtra por el nombre de un estado existente en la tabla estados',
   })
   @IsOptional()
   @IsString()
