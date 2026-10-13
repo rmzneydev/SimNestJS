@@ -17,7 +17,7 @@ export class RequestHistory {
   @RelationId((evento: RequestHistory) => evento.solicitud)
   solicitudId: number;
 
-  @Column()
+  @Column({ type: 'varchar' })
   tipoEvento: HistoryEventType;
 
   @Column({ type: 'varchar', nullable: true })
